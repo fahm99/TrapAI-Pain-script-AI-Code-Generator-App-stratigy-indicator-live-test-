@@ -229,6 +229,5 @@ class _SettingsBottomNav extends StatelessWidget {
     );
   }
 }
- 
- / /   S e t t i n g s   i m p r o v e m e n t s  
- 
+
+// Settings improvements

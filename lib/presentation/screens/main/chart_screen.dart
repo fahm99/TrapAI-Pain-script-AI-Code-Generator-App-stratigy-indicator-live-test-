@@ -214,6 +214,5 @@ class _ChartScreenState extends State<ChartScreen> {
     );
   }
 }
- 
- / /   C h a r t   i m p r o v e m e n t s  
- 
+
+// Chart improvements

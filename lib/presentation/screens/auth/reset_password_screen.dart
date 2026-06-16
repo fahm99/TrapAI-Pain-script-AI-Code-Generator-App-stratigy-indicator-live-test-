@@ -216,6 +216,5 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     }
   }
 }
- 
- / /   R e s e t   p a s s w o r d   i m p r o v e m e n t s  
- 
+
+// Reset password improvements

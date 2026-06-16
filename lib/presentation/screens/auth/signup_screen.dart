@@ -204,6 +204,5 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 }
- 
- / /   S i g n u p   v a l i d a t i o n  
- 
+
+// Signup validation

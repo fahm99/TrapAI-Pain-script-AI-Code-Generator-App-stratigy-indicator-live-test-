@@ -91,7 +91,7 @@ class AppTypography {
         color: AppColors.onPrimary,
       );
 
-  static ThemeData get textTheme {
+  static TextTheme get textTheme {
     final baseTheme = GoogleFonts.interTextTheme();
     return baseTheme.copyWith(
       headlineLarge: headlineLg,

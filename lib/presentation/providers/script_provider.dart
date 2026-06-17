@@ -1,65 +1,34 @@
-import 'package:flutter/material.dart';
-import '../../domain/entities/pine_script_entity.dart';
-import '../../domain/repositories/script_repository.dart';
+import 'package:flutter/foundation.dart';
 
 class ScriptProvider extends ChangeNotifier {
-  final ScriptRepository _repository;
+  String _generatedCode = '';
+  String _selectedType = 'Indicator';
+  String _selectedVersion = 'Pine Script v6';
+  bool _isGenerating = false;
 
-  ScriptProvider(this._repository);
+  String get generatedCode => _generatedCode;
+  String get selectedType => _selectedType;
+  String get selectedVersion => _selectedVersion;
+  bool get isGenerating => _isGenerating;
 
-  List<PineScriptEntity> _scripts = [];
-  PineScriptEntity? _currentScript;
-  bool _isLoading = false;
-  String? _error;
-
-  List<PineScriptEntity> get scripts => _scripts;
-  PineScriptEntity? get currentScript => _currentScript;
-  bool get isLoading => _isLoading;
-  String? get error => _error;
-
-  Future<void> loadScripts() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      _scripts = await _repository.getScripts();
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  void selectScript(PineScriptEntity script) {
-    _currentScript = script;
+  void setType(String type) {
+    _selectedType = type;
     notifyListeners();
   }
 
-  Future<void> generateScript(String prompt, String mode, String version) async {
-    _isLoading = true;
+  void setVersion(String version) {
+    _selectedVersion = version;
     notifyListeners();
-
-    try {
-      final script = await _repository.generateScript(prompt, mode, version);
-      _scripts.insert(0, script);
-      _currentScript = script;
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    }
   }
 
-  Future<void> deleteScript(String id) async {
-    await _repository.deleteScript(id);
-    _scripts.removeWhere((s) => s.id == id);
-    if (_currentScript?.id == id) {
-      _currentScript = null;
-    }
+  Future<void> generateScript(String prompt) async {
+    _isGenerating = true;
+    _generatedCode = '';
+    notifyListeners();
+    await Future.delayed(const Duration(seconds: 3));
+    _generatedCode =
+        '//@version=6\nindicator("AI Generated: $prompt", overlay=true)\n\nrsi = ta.rsi(close, 14)\nplot(rsi, "RSI", color=color.blue)\n';
+    _isGenerating = false;
     notifyListeners();
   }
 }

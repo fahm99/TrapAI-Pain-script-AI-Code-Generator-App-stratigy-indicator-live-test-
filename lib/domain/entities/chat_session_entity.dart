@@ -15,6 +15,8 @@ class ChatSessionEntity {
     required this.updatedAt,
   });
 
+  String get lastMessage => messages.isNotEmpty ? messages.last.content : '';
+
   ChatSessionEntity copyWith({
     String? title,
     List<ChatMessageEntity>? messages,

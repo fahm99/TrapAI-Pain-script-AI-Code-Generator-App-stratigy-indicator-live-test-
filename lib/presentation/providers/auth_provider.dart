@@ -1,101 +1,67 @@
-import 'package:flutter/material.dart';
-import '../../domain/entities/user_entity.dart';
-import '../../domain/repositories/auth_repository.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final AuthRepository _repository;
-
-  AuthProvider(this._repository);
-
-  UserEntity? _user;
+  bool _isAuthenticated = false;
+  String? _userName;
+  String? _userEmail;
   bool _isLoading = false;
-  String? _error;
 
-  UserEntity? get user => _user;
+  bool get isAuthenticated => _isAuthenticated;
+  String? get userName => _userName;
+  String? get userEmail => _userEmail;
   bool get isLoading => _isLoading;
-  bool get isAuthenticated => _user != null;
-  String? get error => _error;
 
   Future<bool> login(String email, String password) async {
     _isLoading = true;
-    _error = null;
     notifyListeners();
-
-    try {
-      _user = await _repository.login(email, password);
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
+    await Future.delayed(const Duration(seconds: 1));
+    _isAuthenticated = true;
+    _userName = 'Fahmi';
+    _userEmail = email;
+    _isLoading = false;
+    notifyListeners();
+    return true;
   }
 
-  Future<bool> signUp(String email, String password, String name) async {
+  Future<bool> signUp(String name, String email, String password) async {
     _isLoading = true;
-    _error = null;
     notifyListeners();
-
-    try {
-      _user = await _repository.signUp(email, password, name);
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<void> resetPassword(String email) async {
-    _isLoading = true;
-    _error = null;
+    await Future.delayed(const Duration(seconds: 1));
+    _isAuthenticated = true;
+    _userName = name;
+    _userEmail = email;
+    _isLoading = false;
     notifyListeners();
-
-    try {
-      await _repository.resetPassword(email);
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    }
+    return true;
   }
 
   Future<bool> verifyOTP(String email, String otp) async {
     _isLoading = true;
-    _error = null;
     notifyListeners();
-
-    try {
-      await _repository.verifyOTP(email, otp);
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
+    await Future.delayed(const Duration(seconds: 1));
+    _isLoading = false;
+    notifyListeners();
+    return true;
   }
 
-  Future<void> signOut() async {
-    await _repository.signOut();
-    _user = null;
+  Future<void> resetPassword(String email) async {
+    _isLoading = true;
+    notifyListeners();
+    await Future.delayed(const Duration(seconds: 1));
+    _isLoading = false;
     notifyListeners();
   }
 
-  void clearError() {
-    _error = null;
+  void logout() {
+    _isAuthenticated = false;
+    _userName = null;
+    _userEmail = null;
+    notifyListeners();
+  }
+
+  void updateProfile({String? name, String? email}) {
+    if (name != null) _userName = name;
+    if (email != null) _userEmail = email;
     notifyListeners();
   }
 }
-
-// Auth provider improvements

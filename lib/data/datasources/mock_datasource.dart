@@ -41,6 +41,22 @@ class MockDataSource {
     _currentUser = null;
   }
 
+  List<ChatSessionEntity> getMockSessions() {
+    return [
+      ChatSessionEntity(
+        id: '1',
+        title: 'Golden Cross Strategy',
+        messages: _mockMessages,
+        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+        updatedAt: DateTime.now().subtract(const Duration(hours: 1)),
+      ),
+    ];
+  }
+
+  List<ChatMessageEntity> getMockMessages(String sessionId) {
+    return List.from(_mockMessages);
+  }
+
   Future<List<ChatSessionEntity>> getChatSessions() async {
     await Future.delayed(const Duration(milliseconds: 500));
     return [

@@ -4,10 +4,7 @@ import '../screens/auth/signup_screen.dart';
 import '../screens/auth/otp_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
 import '../screens/auth/success_screen.dart';
-import '../screens/main/home_screen.dart';
-import '../screens/settings/settings_screen.dart';
-import '../screens/settings/account_settings_screen.dart';
-import '../screens/settings/appearance_screen.dart';
+import '../screens/main/main_shell.dart';
 import '../screens/error/error_screen.dart';
 
 class AppRouter {
@@ -17,9 +14,6 @@ class AppRouter {
   static const String resetPassword = '/reset-password';
   static const String success = '/success';
   static const String home = '/home';
-  static const String settings = '/settings';
-  static const String accountSettings = '/account-settings';
-  static const String appearance = '/appearance';
   static const String error = '/error';
 
   static Route<dynamic> generateRoute(RouteSettings routeSettings) {
@@ -35,14 +29,7 @@ class AppRouter {
       case success:
         return MaterialPageRoute(builder: (_) => const SuccessScreen());
       case home:
-        final tabIndex = routeSettings.arguments as int? ?? 1;
-        return MaterialPageRoute(builder: (_) => HomeScreen(initialIndex: tabIndex));
-      case settings:
-        return MaterialPageRoute(builder: (_) => const SettingsScreen());
-      case accountSettings:
-        return MaterialPageRoute(builder: (_) => const AccountSettingsScreen());
-      case appearance:
-        return MaterialPageRoute(builder: (_) => const AppearanceScreen());
+        return MaterialPageRoute(builder: (_) => const MainShell());
       case error:
         return MaterialPageRoute(builder: (_) => const ErrorScreen());
       default:
@@ -50,5 +37,3 @@ class AppRouter {
     }
   }
 }
-
-// Navigation improvements

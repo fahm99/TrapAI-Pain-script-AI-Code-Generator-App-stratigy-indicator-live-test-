@@ -1,47 +1,41 @@
 import 'package:flutter/material.dart';
 
+enum ThemeModeOption { light, dark, auto }
+
 class SettingsProvider extends ChangeNotifier {
-  String _language = 'English (US)';
-  String _currency = 'USD (\$)';
-  String _chartProvider = 'TradingView Integrated';
-  bool _compactView = false;
-  bool _monospacedLabels = true;
-  ThemeMode _themeMode = ThemeMode.light;
+  ThemeModeOption _themeMode = ThemeModeOption.light;
+  String _language = 'English';
+  bool _notificationsEnabled = true;
 
+  ThemeModeOption get themeMode => _themeMode;
   String get language => _language;
-  String get currency => _currency;
-  String get chartProvider => _chartProvider;
-  bool get compactView => _compactView;
-  bool get monospacedLabels => _monospacedLabels;
-  ThemeMode get themeMode => _themeMode;
+  bool get notificationsEnabled => _notificationsEnabled;
 
-  void setLanguage(String value) {
-    _language = value;
-    notifyListeners();
+  ThemeMode get flutterThemeMode {
+    switch (_themeMode) {
+      case ThemeModeOption.light:
+        return ThemeMode.light;
+      case ThemeModeOption.dark:
+        return ThemeMode.dark;
+      case ThemeModeOption.auto:
+        return ThemeMode.system;
+    }
   }
 
-  void setCurrency(String value) {
-    _currency = value;
-    notifyListeners();
-  }
-
-  void setChartProvider(String value) {
-    _chartProvider = value;
-    notifyListeners();
-  }
-
-  void toggleCompactView() {
-    _compactView = !_compactView;
-    notifyListeners();
-  }
-
-  void toggleMonospacedLabels() {
-    _monospacedLabels = !_monospacedLabels;
-    notifyListeners();
-  }
-
-  void setThemeMode(ThemeMode mode) {
+  void setThemeMode(ThemeModeOption mode) {
     _themeMode = mode;
     notifyListeners();
   }
+
+  void setLanguage(String lang) {
+    _language = lang;
+    notifyListeners();
+  }
+
+  void toggleNotifications() {
+    _notificationsEnabled = !_notificationsEnabled;
+    notifyListeners();
+  }
+
+  void clearCache() {}
 }

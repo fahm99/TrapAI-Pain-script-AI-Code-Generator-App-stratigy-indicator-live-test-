@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import '../../domain/entities/chat_message_entity.dart';
 
 class ChatBubble extends StatelessWidget {
-  final String message;
-  final bool isUser;
-  final String? imagePath;
+  final ChatMessageEntity message;
 
   const ChatBubble({
     super.key,
     required this.message,
-    required this.isUser,
-    this.imagePath,
   });
+
+  bool get isUser => message.role == MessageRole.user;
 
   @override
   Widget build(BuildContext context) {
@@ -28,47 +27,49 @@ class ChatBubble extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryContainer,
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text('AI', style: AppTypography.labelSm.copyWith(fontSize: 10, color: AppColors.onPrimaryContainer)),
+                  child: const Text('AI', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
                 ),
                 const SizedBox(width: 6),
-                Text('TrapAI Assistant', style: AppTypography.labelSm),
+                Text('TrapAI', style: AppTypography.labelSm),
               ],
             ),
             const SizedBox(height: 6),
           ],
           Container(
             constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.75,
+              maxWidth: MediaQuery.of(context).size.width * 0.78,
             ),
             margin: const EdgeInsets.symmetric(vertical: 4),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isUser ? AppColors.primary : AppColors.surfaceContainer,
+              color: isUser ? AppColors.primary : AppColors.surfaceContainerLowest,
               borderRadius: BorderRadius.circular(12),
+              border: isUser ? null : Border.all(color: AppColors.border, width: 0.5),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (imagePath != null) ...[
+                if (message.imagePath != null) ...[
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.asset(
-                      imagePath!,
+                      message.imagePath!,
                       width: double.infinity,
                       fit: BoxFit.cover,
                     ),
                   ),
                   const SizedBox(height: 8),
                 ],
-                Text(
-                  message,
+                SelectableText(
+                  message.content,
                   style: TextStyle(
-                    color: isUser ? AppColors.onPrimary : AppColors.textMain,
+                    color: isUser ? Colors.white : AppColors.textMain,
                     fontSize: 14,
                     height: 1.5,
+                    fontFamily: isUser ? null : 'monospace',
                   ),
                 ),
               ],
@@ -79,5 +80,3 @@ class ChatBubble extends StatelessWidget {
     );
   }
 }
-
-// Chat bubble improvements

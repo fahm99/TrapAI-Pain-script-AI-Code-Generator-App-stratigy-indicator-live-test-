@@ -4,15 +4,15 @@ import '../../core/theme/app_typography.dart';
 
 class CodeBlockWidget extends StatelessWidget {
   final String code;
-  final String filename;
-  final String version;
+  final String? filename;
+  final String? version;
   final bool showHeader;
 
   const CodeBlockWidget({
     super.key,
     required this.code,
-    required this.filename,
-    required this.version,
+    this.filename,
+    this.version,
     this.showHeader = false,
   });
 
@@ -20,77 +20,47 @@ class CodeBlockWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: const Color(0xFF1E1E1E),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border, width: 0.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: const BoxDecoration(
-              color: AppColors.primaryContainer,
+              color: Color(0xFF2D2D2D),
               borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
             ),
             child: Row(
               children: [
-                if (showHeader) ...[
+                const Icon(Icons.code, size: 14, color: Colors.white54),
+                const SizedBox(width: 6),
+                Text(
+                  filename ?? 'Pine Script',
+                  style: const TextStyle(color: Colors.white70, fontSize: 12, fontFamily: 'monospace'),
+                ),
+                const Spacer(),
+                if (version != null)
                   Text(
-                    'Pine Script | UTF-8',
-                    style: AppTypography.labelSm.copyWith(
-                      color: AppColors.onPrimaryContainer,
-                      fontFamily: 'JetBrains Mono',
-                      fontSize: 10,
-                    ),
+                    version!,
+                    style: const TextStyle(color: Colors.white38, fontSize: 10),
                   ),
-                  const Spacer(),
-                ] else ...[
-                  Text(
-                    'Pinescript ${version.replaceAll('v', 'v')}',
-                    style: AppTypography.labelSm.copyWith(
-                      color: AppColors.onPrimaryContainer,
-                      fontSize: 11,
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Copied!')),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.copy, size: 12, color: AppColors.textMain),
-                          const SizedBox(width: 4),
-                          Text('Copy', style: AppTypography.labelSm.copyWith(fontSize: 10)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
-          // Code content
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.all(12),
-            child: Text(
+            child: SelectableText(
               code,
-              style: AppTypography.codeBlock.copyWith(
-                color: AppColors.onPrimary,
-                fontSize: 12,
+              style: const TextStyle(
+                color: Color(0xFFD4D4D4),
+                fontSize: 13,
+                height: 1.6,
+                fontFamily: 'monospace',
               ),
             ),
           ),
@@ -99,5 +69,3 @@ class CodeBlockWidget extends StatelessWidget {
     );
   }
 }
-
-// Code block improvements

@@ -1,76 +1,90 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../../domain/entities/chat_message_entity.dart';
 import '../../domain/entities/chat_session_entity.dart';
-import '../../domain/repositories/chat_repository.dart';
+import '../../data/datasources/mock_datasource.dart';
 
 class ChatProvider extends ChangeNotifier {
-  final ChatRepository _repository;
+  final MockDataSource _dataSource = MockDataSource.instance;
 
-  ChatProvider(this._repository);
-
+  List<ChatSessionEntity> _allSessions = [];
   List<ChatSessionEntity> _sessions = [];
-  ChatSessionEntity? _currentSession;
   List<ChatMessageEntity> _messages = [];
+  String? _currentSessionId;
   bool _isLoading = false;
-  String _currentMode = 'Indicator';
-  String _currentVersion = 'v6';
   String? _error;
 
   List<ChatSessionEntity> get sessions => _sessions;
-  ChatSessionEntity? get currentSession => _currentSession;
   List<ChatMessageEntity> get messages => _messages;
+  String? get currentSessionId => _currentSessionId;
   bool get isLoading => _isLoading;
-  String get currentMode => _currentMode;
-  String get currentVersion => _currentVersion;
   String? get error => _error;
 
-  void setMode(String mode) {
-    _currentMode = mode;
+  ChatProvider() {
+    _loadSessions();
+  }
+
+  Future<void> _loadSessions() async {
+    _allSessions = await _dataSource.getChatSessions();
+    _sessions = List.from(_allSessions);
     notifyListeners();
   }
 
-  void setVersion(String version) {
-    _currentVersion = version;
+  void selectSession(String sessionId) {
+    _currentSessionId = sessionId;
+    final session = _allSessions.firstWhere(
+      (s) => s.id == sessionId,
+      orElse: () => _allSessions.first,
+    );
+    _messages = List.from(session.messages);
     notifyListeners();
   }
 
-  Future<void> loadSessions() async {
-    _sessions = await _repository.getChatSessions();
+  void createNewSession() {
+    _currentSessionId = null;
+    _messages = [];
     notifyListeners();
   }
 
   Future<void> sendMessage(String content, {String? imagePath}) async {
-    final userMessage = ChatMessageEntity(
+    if (content.trim().isEmpty && imagePath == null) return;
+
+    final userMsg = ChatMessageEntity(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       content: content,
       role: MessageRole.user,
       timestamp: DateTime.now(),
       imagePath: imagePath,
     );
-    _messages.add(userMessage);
+    _messages.add(userMsg);
     notifyListeners();
 
     _isLoading = true;
     notifyListeners();
 
-    try {
-      final sessionId = _currentSession?.id ?? DateTime.now().millisecondsSinceEpoch.toString();
-      final aiMessage = await _repository.sendMessage(sessionId, content, imagePath: imagePath);
-      _messages.add(aiMessage);
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    }
+    final aiMsg = await _dataSource.sendMessage(content, imagePath: imagePath);
+    _messages.add(aiMsg);
+    _isLoading = false;
+    notifyListeners();
   }
 
-  void clearChat() {
-    _messages.clear();
-    _currentSession = null;
+  void deleteSession(String sessionId) {
+    _allSessions.removeWhere((s) => s.id == sessionId);
+    _sessions.removeWhere((s) => s.id == sessionId);
+    if (_currentSessionId == sessionId) {
+      _currentSessionId = null;
+      _messages = [];
+    }
+    notifyListeners();
+  }
+
+  void searchSessions(String query) {
+    if (query.isEmpty) {
+      _sessions = List.from(_allSessions);
+    } else {
+      _sessions = _allSessions
+          .where((s) => s.title.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    }
     notifyListeners();
   }
 }
-
-// Chat provider improvements

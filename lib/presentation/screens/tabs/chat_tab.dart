@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../domain/entities/chat_message_entity.dart';
 import '../../providers/chat_provider.dart';
-import '../../providers/script_provider.dart';
-import '../../widgets/chat_bubble.dart';
 import '../../widgets/empty_state.dart';
 
 class ChatTab extends StatefulWidget {
@@ -45,7 +45,12 @@ class _ChatTabState extends State<ChatTab> {
     final text = _promptController.text.trim();
     if (text.isEmpty && _imagePath == null) return;
 
-    context.read<ChatProvider>().sendMessage(text, imagePath: _imagePath);
+    context.read<ChatProvider>().sendMessage(
+      text,
+      imagePath: _imagePath,
+      type: _selectedType,
+      version: _selectedVersion,
+    );
     _promptController.clear();
     setState(() => _imagePath = null);
     _scrollToBottom();
@@ -83,7 +88,7 @@ class _ChatTabState extends State<ChatTab> {
                     return const _TypingIndicator();
                   }
                   final msg = chat.messages[index];
-                  return ChatBubble(message: msg);
+                  return _ChatBubble(message: msg);
                 },
               );
             },
@@ -96,7 +101,7 @@ class _ChatTabState extends State<ChatTab> {
 
   Widget _buildInputContainer() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       decoration: const BoxDecoration(
         color: AppColors.background,
         border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
@@ -104,69 +109,32 @@ class _ChatTabState extends State<ChatTab> {
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.border, width: 1),
         ),
-        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _promptController,
-                    maxLines: 4,
-                    minLines: 1,
-                    textInputAction: TextInputAction.newline,
-                    style: AppTypography.bodyMd.copyWith(color: AppColors.textMain),
-                    decoration: InputDecoration(
-                      hintText: 'Describe your Pine Script...',
-                      hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.textMuted),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    onSubmitted: (_) => _send(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: _pickImage,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.divider,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.image_outlined, size: 20, color: AppColors.textMuted),
-                  ),
-                ),
-              ],
-            ),
-            if (_imagePath != null) ...[
-              const SizedBox(height: 8),
+            if (_imagePath != null)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
                   color: AppColors.divider,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.image, size: 16, color: AppColors.textSecondary),
-                    const SizedBox(width: 6),
-                    Flexible(
+                    const SizedBox(width: 8),
+                    Expanded(
                       child: Text(
                         _imagePath!.split('/').last,
                         style: AppTypography.bodySm,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 6),
                     GestureDetector(
                       onTap: () => setState(() => _imagePath = null),
                       child: const Icon(Icons.close, size: 16, color: AppColors.textMuted),
@@ -174,26 +142,60 @@ class _ChatTabState extends State<ChatTab> {
                   ],
                 ),
               ),
-            ],
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                _buildDropdown(
-                  value: _selectedType,
-                  items: const ['Indicator', 'Strategy'],
-                  onChanged: (v) => setState(() => _selectedType = v!),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 8, 0),
+              child: TextField(
+                controller: _promptController,
+                maxLines: 4,
+                minLines: 1,
+                textInputAction: TextInputAction.newline,
+                style: AppTypography.bodyMd.copyWith(color: AppColors.textMain),
+                decoration: InputDecoration(
+                  hintText: 'Describe your Pine Script...',
+                  hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.textMuted),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
                 ),
-                const SizedBox(width: 8),
-                _buildDropdown(
-                  value: _selectedVersion,
-                  items: const ['Pine Script v6', 'Pine Script v5'],
-                  onChanged: (v) => setState(() => _selectedVersion = v!),
-                ),
-                const Spacer(),
-                _buildSendButton(),
-              ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+              child: Row(
+                children: [
+                  _iconButton(Icons.image_outlined, _pickImage),
+                  const SizedBox(width: 4),
+                  _buildDropdown(
+                    value: _selectedType,
+                    items: const ['Indicator', 'Strategy'],
+                    onChanged: (v) => setState(() => _selectedType = v!),
+                  ),
+                  const SizedBox(width: 6),
+                  _buildDropdown(
+                    value: _selectedVersion,
+                    items: const ['Pine Script v6', 'Pine Script v5'],
+                    onChanged: (v) => setState(() => _selectedVersion = v!),
+                  ),
+                  const Spacer(),
+                  _buildSendButton(),
+                ],
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _iconButton(IconData icon, VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(icon, size: 20, color: AppColors.textMuted),
         ),
       ),
     );
@@ -205,19 +207,18 @@ class _ChatTabState extends State<ChatTab> {
     required ValueChanged<String?> onChanged,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: AppColors.divider,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border, width: 1),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           isDense: true,
-          style: AppTypography.labelText.copyWith(color: AppColors.textMain),
-          icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.textMuted),
-          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+          style: TextStyle(fontSize: 12, color: AppColors.textMain),
+          icon: const Icon(Icons.keyboard_arrow_down, size: 14, color: AppColors.textMuted),
+          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 12)))).toList(),
           onChanged: onChanged,
         ),
       ),
@@ -232,9 +233,117 @@ class _ChatTabState extends State<ChatTab> {
         onTap: _send,
         borderRadius: BorderRadius.circular(10),
         child: const Padding(
-          padding: EdgeInsets.all(10),
-          child: Icon(Icons.arrow_upward, size: 20, color: Colors.white),
+          padding: EdgeInsets.all(8),
+          child: Icon(Icons.arrow_upward, size: 18, color: Colors.white),
         ),
+      ),
+    );
+  }
+}
+
+class _ChatBubble extends StatelessWidget {
+  final dynamic message;
+  const _ChatBubble({required this.message});
+
+  bool get isUser => message.role == MessageRole.user;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Column(
+        crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          if (!isUser) ...[
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text('AI', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                ),
+                const SizedBox(width: 6),
+                Text('TrapAI', style: AppTypography.labelSm),
+              ],
+            ),
+            const SizedBox(height: 6),
+          ],
+          Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.82,
+            ),
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isUser ? AppColors.primary : AppColors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(12),
+              border: isUser ? null : Border.all(color: AppColors.border, width: 0.5),
+            ),
+            child: isUser
+                ? SelectableText(
+                    message.content,
+                    style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.5),
+                  )
+                : _buildMarkdownResponse(message.content),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMarkdownResponse(String text) {
+    final codeRegex = RegExp(r'```(\w*)\n([\s\S]*?)```', multiLine: true);
+    final parts = <InlineSpan>[];
+    int lastEnd = 0;
+
+    for (final match in codeRegex.allMatches(text)) {
+      if (match.start > lastEnd) {
+        parts.add(TextSpan(text: text.substring(lastEnd, match.start)));
+      }
+      final lang = match.group(1) ?? '';
+      final code = match.group(2) ?? '';
+      parts.add(WidgetSpan(
+        child: Container(
+          width: double.infinity,
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (lang.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(lang.toUpperCase(), style: const TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.w600)),
+                ),
+                SelectableText(code.trim(), style: const TextStyle(color: Color(0xFFD4D4D4), fontSize: 13, height: 1.5, fontFamily: 'monospace')),
+            ],
+          ),
+        ),
+      ));
+      lastEnd = match.end;
+    }
+
+    if (lastEnd < text.length) {
+      parts.add(TextSpan(text: text.substring(lastEnd)));
+    }
+
+    if (parts.isEmpty) {
+      return SelectableText(text, style: const TextStyle(color: AppColors.textMain, fontSize: 14, height: 1.6));
+    }
+
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(color: AppColors.textMain, fontSize: 14, height: 1.6),
+        children: parts,
       ),
     );
   }
@@ -255,34 +364,51 @@ class _TypingIndicator extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.border, width: 0.5),
         ),
-        child: Row(
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _dot(0), const SizedBox(width: 4), _dot(1), const SizedBox(width: 4), _dot(2),
+            _Dot(), SizedBox(width: 4), _Dot(), SizedBox(width: 4), _Dot(),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _dot(int index) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.3, end: 1.0),
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.easeInOut,
-      builder: (_, v, __) {
-        return Opacity(
-          opacity: v.clamp(0.3, 1.0),
-          child: Container(
-            width: 7,
-            height: 7,
-            decoration: const BoxDecoration(
-              color: AppColors.textMuted,
-              shape: BoxShape.circle,
-            ),
-          ),
-        );
-      },
+class _Dot extends StatefulWidget {
+  const _Dot();
+  @override
+  State<_Dot> createState() => _DotState();
+}
+
+class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 600))..repeat(reverse: true);
+    _animation = Tween<double>(begin: 0.3, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (_, __) => Opacity(
+        opacity: _animation.value,
+        child: Container(
+          width: 7, height: 7,
+          decoration: const BoxDecoration(color: AppColors.textMuted, shape: BoxShape.circle),
+        ),
+      ),
     );
   }
 }

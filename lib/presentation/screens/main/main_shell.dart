@@ -11,7 +11,6 @@ import '../drawer/plans_page.dart';
 import '../drawer/account_settings_page.dart';
 import '../drawer/general_settings_page.dart';
 import '../drawer/support_help_page.dart';
-import '../settings/settings_page.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -27,7 +26,7 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: 1);
+    _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
   }
 
   @override
@@ -36,77 +35,48 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
     super.dispose();
   }
 
-  void _openDrawer() {
-    _scaffoldKey.currentState?.openEndDrawer();
-  }
-
-  void _openSettings() {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const SettingsPage(),
-        transitionsBuilder: (_, animation, __, child) {
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 0.05),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
-            child: FadeTransition(opacity: animation, child: child),
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 200),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.background,
       endDrawer: _buildDrawer(),
-      body: Column(
-        children: [
-          _buildAppBar(),
-          _buildTabs(),
-          const Divider(height: 1, thickness: 1, color: AppColors.border),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              physics: const BouncingScrollPhysics(),
-              children: const [
-                ChatTab(),
-                CodeTab(),
-                ChartTab(),
-              ],
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+            _buildAppBar(),
+            _buildTabs(),
+            const Divider(height: 1, thickness: 0.5, color: AppColors.border),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                physics: const BouncingScrollPhysics(),
+                children: const [
+                  ChatTab(),
+                  CodeTab(),
+                  ChartTab(),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildAppBar() {
     return Container(
-      height: 56,
+      height: 52,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        border: Border(bottom: BorderSide(color: AppColors.border, width: 0.5)),
-      ),
       child: Row(
         children: [
-          const SizedBox(width: 4),
           _buildLogo(),
           const Spacer(),
           IconButton(
-            icon: const Icon(Icons.settings_outlined, size: 22),
-            onPressed: _openSettings,
-            splashRadius: 20,
-            tooltip: 'Settings',
-          ),
-          IconButton(
             icon: const Icon(Icons.menu_rounded, size: 22),
-            onPressed: _openDrawer,
+            onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
             splashRadius: 20,
             tooltip: 'Menu',
           ),
@@ -118,7 +88,7 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
   Widget _buildLogo() {
     return const Row(
       children: [
-        Icon(Icons.auto_graph, size: 28, color: AppColors.primary),
+        Icon(Icons.auto_graph, size: 26, color: AppColors.primary),
         SizedBox(width: 8),
         Text('TrapAI', style: TextStyle(
           fontSize: 20,
@@ -132,7 +102,7 @@ class _MainShellState extends State<MainShell> with SingleTickerProviderStateMix
 
   Widget _buildTabs() {
     return Container(
-      height: 44,
+      height: 40,
       color: AppColors.background,
       child: TabBar(
         controller: _tabController,

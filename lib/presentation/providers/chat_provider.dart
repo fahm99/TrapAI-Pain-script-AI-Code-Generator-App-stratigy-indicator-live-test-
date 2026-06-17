@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../../domain/entities/chat_message_entity.dart';
 import '../../domain/entities/chat_session_entity.dart';
 import '../../data/datasources/mock_datasource.dart';
+import '../../../core/services/gemini_service.dart';
 
 class ChatProvider extends ChangeNotifier {
   final MockDataSource _dataSource = MockDataSource.instance;
@@ -45,7 +46,12 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> sendMessage(String content, {String? imagePath}) async {
+  Future<void> sendMessage(
+    String content, {
+    String? imagePath,
+    String type = 'Indicator',
+    String version = 'Pine Script v6',
+  }) async {
     if (content.trim().isEmpty && imagePath == null) return;
 
     final userMsg = ChatMessageEntity(
@@ -59,10 +65,26 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
 
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
-    final aiMsg = await _dataSource.sendMessage(content, imagePath: imagePath);
-    _messages.add(aiMsg);
+    try {
+      final aiReply = await GeminiService.generatePineScript(
+        prompt: content,
+        type: type,
+        version: version,
+      );
+      final aiMsg = ChatMessageEntity(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        content: aiReply,
+        role: MessageRole.assistant,
+        timestamp: DateTime.now(),
+      );
+      _messages.add(aiMsg);
+    } catch (e) {
+      _error = e.toString();
+    }
+
     _isLoading = false;
     notifyListeners();
   }

@@ -11,9 +11,6 @@ class GeminiService {
     required String version,
   }) async {
     final apiKey = AppConfig.geminiApiKey;
-    if (apiKey.isEmpty) {
-      return 'Error: Gemini API key not configured. Please set GEMINI_API_KEY in your environment.';
-    }
 
     final systemPrompt = '''You are TrapAI, an expert Pine Script coding assistant. 
 Generate Pine Script code for TradingView based on the user's request.

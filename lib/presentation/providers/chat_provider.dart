@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/entities/chat_message_entity.dart';
 import '../../domain/entities/chat_session_entity.dart';
-import '../../data/datasources/mock_datasource.dart';
+import '../../../core/services/supabase_service.dart';
 import '../../../core/services/gemini_service.dart';
 
 class ChatProvider extends ChangeNotifier {
-  final MockDataSource _dataSource = MockDataSource.instance;
+  final SupabaseService _supabase = SupabaseService.instance;
 
-  List<ChatSessionEntity> _allSessions = [];
   List<ChatSessionEntity> _sessions = [];
   List<ChatMessageEntity> _messages = [];
   String? _currentSessionId;
@@ -25,25 +25,58 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> _loadSessions() async {
-    _allSessions = await _dataSource.getChatSessions();
-    _sessions = List.from(_allSessions);
-    notifyListeners();
+    if (!_supabase.isAuthenticated) return;
+    try {
+      final data = await _supabase.getChatSessions();
+      _sessions = data.map((s) => ChatSessionEntity(
+        id: s['id'],
+        title: s['title'],
+        messages: [],
+        createdAt: DateTime.parse(s['created_at']),
+        updatedAt: DateTime.parse(s['updated_at']),
+      )).toList();
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
   }
 
-  void selectSession(String sessionId) {
+  Future<void> selectSession(String sessionId) async {
     _currentSessionId = sessionId;
-    final session = _allSessions.firstWhere(
-      (s) => s.id == sessionId,
-      orElse: () => _allSessions.first,
-    );
-    _messages = List.from(session.messages);
-    notifyListeners();
+    try {
+      final data = await _supabase.getMessages(sessionId);
+      _messages = data.map((m) => ChatMessageEntity(
+        id: m['id'],
+        content: m['content'],
+        role: m['role'] == 'user' ? MessageRole.user : MessageRole.assistant,
+        timestamp: DateTime.parse(m['created_at']),
+        imagePath: m['image_url'],
+      )).toList();
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
   }
 
-  void createNewSession() {
-    _currentSessionId = null;
-    _messages = [];
-    notifyListeners();
+  Future<void> createNewSession() async {
+    try {
+      final session = await _supabase.createChatSession();
+      _currentSessionId = session['id'];
+      _sessions.insert(0, ChatSessionEntity(
+        id: session['id'],
+        title: session['title'],
+        messages: [],
+        createdAt: DateTime.parse(session['created_at']),
+        updatedAt: DateTime.parse(session['updated_at']),
+      ));
+      _messages = [];
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
   }
 
   Future<void> sendMessage(
@@ -53,6 +86,10 @@ class ChatProvider extends ChangeNotifier {
     String version = 'Pine Script v6',
   }) async {
     if (content.trim().isEmpty && imagePath == null) return;
+
+    if (_currentSessionId == null) {
+      await createNewSession();
+    }
 
     final userMsg = ChatMessageEntity(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -69,11 +106,25 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      await _supabase.sendMessage(
+        sessionId: _currentSessionId!,
+        role: 'user',
+        content: content,
+        imageUrl: imagePath,
+      );
+
       final aiReply = await GeminiService.generatePineScript(
         prompt: content,
         type: type,
         version: version,
       );
+
+      await _supabase.sendMessage(
+        sessionId: _currentSessionId!,
+        role: 'assistant',
+        content: aiReply,
+      );
+
       final aiMsg = ChatMessageEntity(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         content: aiReply,
@@ -89,24 +140,29 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void deleteSession(String sessionId) {
-    _allSessions.removeWhere((s) => s.id == sessionId);
-    _sessions.removeWhere((s) => s.id == sessionId);
-    if (_currentSessionId == sessionId) {
-      _currentSessionId = null;
-      _messages = [];
+  Future<void> deleteSession(String sessionId) async {
+    try {
+      await _supabase.deleteChatSession(sessionId);
+      _sessions.removeWhere((s) => s.id == sessionId);
+      if (_currentSessionId == sessionId) {
+        _currentSessionId = null;
+        _messages = [];
+      }
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   void searchSessions(String query) {
     if (query.isEmpty) {
-      _sessions = List.from(_allSessions);
+      _loadSessions();
     } else {
-      _sessions = _allSessions
+      _sessions = _sessions
           .where((s) => s.title.toLowerCase().contains(query.toLowerCase()))
           .toList();
+      notifyListeners();
     }
-    notifyListeners();
   }
 }

@@ -102,87 +102,75 @@ class _ChatTabState extends State<ChatTab> {
   Widget _buildInputContainer() {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border, width: 1),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border, width: 1),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (_imagePath != null)
-              Container(
-                margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.divider,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.image, size: 16, color: AppColors.textSecondary),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _imagePath!.split('/').last,
-                        style: AppTypography.bodySm,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => setState(() => _imagePath = null),
-                      child: const Icon(Icons.close, size: 16, color: AppColors.textMuted),
-                    ),
-                  ],
-                ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_imagePath != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.divider,
+                borderRadius: BorderRadius.circular(8),
               ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 8, 0),
-              child: TextField(
-                controller: _promptController,
-                maxLines: 4,
-                minLines: 1,
-                textInputAction: TextInputAction.newline,
-                style: AppTypography.bodyMd.copyWith(color: AppColors.textMain),
-                decoration: InputDecoration(
-                  hintText: 'Describe your Pine Script...',
-                  hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.textMuted),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
               child: Row(
                 children: [
-                  _iconButton(Icons.image_outlined, _pickImage),
-                  const SizedBox(width: 4),
-                  _buildDropdown(
-                    value: _selectedType,
-                    items: const ['Indicator', 'Strategy'],
-                    onChanged: (v) => setState(() => _selectedType = v!),
+                  const Icon(Icons.image, size: 16, color: AppColors.textSecondary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _imagePath!.split('/').last,
+                      style: AppTypography.bodySm,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  const SizedBox(width: 6),
-                  _buildDropdown(
-                    value: _selectedVersion,
-                    items: const ['Pine Script v6', 'Pine Script v5'],
-                    onChanged: (v) => setState(() => _selectedVersion = v!),
+                  GestureDetector(
+                    onTap: () => setState(() => _imagePath = null),
+                    child: const Icon(Icons.close, size: 16, color: AppColors.textMuted),
                   ),
-                  const Spacer(),
-                  _buildSendButton(),
                 ],
               ),
             ),
-          ],
-        ),
+          TextField(
+            controller: _promptController,
+            maxLines: 4,
+            minLines: 1,
+            textInputAction: TextInputAction.newline,
+            style: AppTypography.bodyMd.copyWith(color: AppColors.textMain),
+            decoration: InputDecoration(
+              hintText: 'Describe your Pine Script...',
+              hintStyle: AppTypography.bodyMd.copyWith(color: AppColors.textMuted),
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            ),
+          ),
+          Row(
+            children: [
+              _iconButton(Icons.image_outlined, _pickImage),
+              const SizedBox(width: 4),
+              _buildDropdown(
+                value: _selectedType,
+                items: const ['Indicator', 'Strategy'],
+                onChanged: (v) => setState(() => _selectedType = v!),
+              ),
+              const SizedBox(width: 6),
+              _buildDropdown(
+                value: _selectedVersion,
+                items: const ['Pine Script v6', 'Pine Script v5'],
+                onChanged: (v) => setState(() => _selectedVersion = v!),
+              ),
+              const Spacer(),
+              _buildSendButton(),
+            ],
+          ),
+        ],
       ),
     );
   }

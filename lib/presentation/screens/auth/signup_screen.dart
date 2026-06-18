@@ -194,9 +194,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (_formKey.currentState!.validate()) {
       final auth = context.read<AuthProvider>();
       final success = await auth.signUp(
+        _nameController.text.trim(),
         _emailController.text.trim(),
         _passwordController.text,
-        _nameController.text.trim(),
       );
       if (success && mounted) {
         Navigator.pushNamedAndRemoveUntil(context, '/otp', (route) => false);

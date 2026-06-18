@@ -67,6 +67,11 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    } catch (e) {
+      _error = 'An unexpected error occurred. Please try again.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 
@@ -75,33 +80,41 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      await _supabase.signUp(email: email, password: password, fullName: name);
+      final response = await _supabase.signUp(email: email, password: password, fullName: name);
       _pendingEmail = email;
       _isLoading = false;
       notifyListeners();
-      return true;
+      return response.user != null;
     } on AuthException catch (e) {
       _error = e.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _error = 'An unexpected error occurred. Please try again.';
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  Future<void> sendOTP(String email) async {
+  Future<void> resendOTP(String email) async {
     _isLoading = true;
     _error = null;
-    _pendingEmail = email;
     notifyListeners();
     try {
-      await _supabase.client.auth.signInWithOtp(
+      await _supabase.client.auth.resend(
         email: email,
-        emailRedirectTo: 'io.supabase.flutter://login-callback/',
+        type: OtpType.signup,
       );
       _isLoading = false;
       notifyListeners();
     } on AuthException catch (e) {
       _error = e.message;
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = 'Failed to resend code. Please try again.';
       _isLoading = false;
       notifyListeners();
     }

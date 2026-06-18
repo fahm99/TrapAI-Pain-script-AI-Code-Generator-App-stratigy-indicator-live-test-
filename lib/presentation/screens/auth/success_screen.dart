@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../providers/auth_provider.dart';
-import '../../widgets/trapai_logo.dart';
 
 class SuccessScreen extends StatelessWidget {
   const SuccessScreen({super.key});

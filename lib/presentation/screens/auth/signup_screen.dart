@@ -129,16 +129,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 8),
                 Consumer<AuthProvider>(
                   builder: (context, auth, _) {
-                    return ElevatedButton.icon(
-                      onPressed: (auth.isLoading || !_agreeToTerms) ? null : _handleSignUp,
-                      icon: auth.isLoading
-                          ? const SizedBox(
-                              height: 18,
-                              width: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                            )
-                          : const Icon(Icons.arrow_forward, size: 18),
-                      label: const Text('Sign Up'),
+                    return Column(
+                      children: [
+                        if (auth.error != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Text(
+                              auth.error!,
+                              style: AppTypography.bodySm.copyWith(color: AppColors.error),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ElevatedButton.icon(
+                          onPressed: (auth.isLoading || !_agreeToTerms) ? null : _handleSignUp,
+                          icon: auth.isLoading
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                )
+                              : const Icon(Icons.arrow_forward, size: 18),
+                          label: const Text('Sign Up'),
+                        ),
+                      ],
                     );
                   },
                 ),
@@ -169,7 +182,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     onTap: () => Navigator.pushReplacementNamed(context, '/login'),
                     child: Text.rich(
                       TextSpan(
-                        text: "Already have an account? ",
+                        text: 'Already have an account? ',
                         style: AppTypography.bodyMd,
                         children: [
                           TextSpan(

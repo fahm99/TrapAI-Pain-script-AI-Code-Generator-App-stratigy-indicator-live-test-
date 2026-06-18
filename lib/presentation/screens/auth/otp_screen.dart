@@ -24,9 +24,6 @@ class _OTPScreenState extends State<OTPScreen> {
   void initState() {
     super.initState();
     _startTimer();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _sendOTP();
-    });
   }
 
   @override
@@ -55,9 +52,9 @@ class _OTPScreenState extends State<OTPScreen> {
 
   String get _otpCode => _controllers.map((c) => c.text).join();
 
-  Future<void> _sendOTP() async {
+  Future<void> _resendOTP() async {
     final auth = context.read<AuthProvider>();
-    await auth.sendOTP(auth.pendingEmail);
+    await auth.resendOTP(auth.pendingEmail);
   }
 
   @override
@@ -224,7 +221,7 @@ class _OTPScreenState extends State<OTPScreen> {
   }
 
   void _handleResend() {
-    _sendOTP();
+    _resendOTP();
     setState(() => _countdown = 60);
     _startTimer();
   }

@@ -10,7 +10,7 @@ class GeminiService {
     required String type,
     required String version,
   }) async {
-    final apiKey = AppConfig.geminiApiKey;
+    const apiKey = AppConfig.geminiApiKey;
 
     final systemPrompt = '''You are TrapAI, an expert Pine Script coding assistant. 
 Generate Pine Script code for TradingView based on the user's request.

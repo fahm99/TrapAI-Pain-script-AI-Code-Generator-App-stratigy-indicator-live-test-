@@ -18,12 +18,12 @@ class TrapAIAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      leading: Padding(
-        padding: const EdgeInsets.all(8.0),
+      leading: const Padding(
+        padding: EdgeInsets.all(8.0),
         child: CircleAvatar(
           radius: 16,
           backgroundColor: AppColors.surfaceContainer,
-          child: const Icon(Icons.person, size: 18, color: AppColors.textSecondary),
+          child: Icon(Icons.person, size: 18, color: AppColors.textSecondary),
         ),
       ),
       title: const Text('TrapAI'),

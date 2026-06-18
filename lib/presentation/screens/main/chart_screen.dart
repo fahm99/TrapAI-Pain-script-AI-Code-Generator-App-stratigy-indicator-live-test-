@@ -15,7 +15,7 @@ class ChartScreen extends StatefulWidget {
 
 class _ChartScreenState extends State<ChartScreen> {
   String _selectedTimeframe = '15m';
-  String _symbol = 'BTCUSD';
+  final String _symbol = 'BTCUSD';
 
   @override
   Widget build(BuildContext context) {

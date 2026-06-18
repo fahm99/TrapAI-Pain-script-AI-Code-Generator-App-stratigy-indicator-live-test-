@@ -204,7 +204,7 @@ class _ChatTabState extends State<ChatTab> {
         child: DropdownButton<String>(
           value: value,
           isDense: true,
-          style: TextStyle(fontSize: 12, color: AppColors.textMain),
+          style: const TextStyle(fontSize: 12, color: AppColors.textMain),
           icon: const Icon(Icons.keyboard_arrow_down, size: 14, color: AppColors.textMuted),
           items: items.map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 12)))).toList(),
           onChanged: onChanged,
